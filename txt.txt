@@ -1,0 +1,7 @@
+Typeorm - library for TypeScript
+    ORM- Object relational mapping
+
+    provides way to interact with a rdbm using objects. 
+    allows you to work with db using a highlevel-api, instead of writing raw sql queries,
+    by mapping database  tables to classes in code
+
