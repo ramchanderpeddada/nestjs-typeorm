@@ -17,9 +17,10 @@ import { UsersService } from './users.service';
 @Controller('users')
 export class UsersController {
   constructor(private userService: UsersService) {}
+
   @Get()
   getUsers() {
-    return this.userService.findUsers();
+    return this.userService.getUsers();
   }
 
   @Post()
@@ -55,4 +56,9 @@ export class UsersController {
   ) {
     return this.userService.createUserPost(id, createUserPostDto);
   }
+
+  // @Delete('posts/:id')
+  // deleteUserPost(@Param('id', ParseIntPipe) id: number) {
+  //   return this.userService.deletePost(id);
+  // }
 }
