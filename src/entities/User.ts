@@ -14,11 +14,14 @@ export class User {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
 
-  @Column({ unique: true })
+  @Column({ default: null })
   username: string;
 
   @Column()
-  password: string;
+  email: string;
+
+  @Column()
+  phone: number;
 
   @Column()
   createdAt: Date;

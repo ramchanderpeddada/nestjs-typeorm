@@ -3,6 +3,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpException,
   Param,
   ParseIntPipe,
   Post,
@@ -23,6 +24,17 @@ export class UsersController {
     return this.userService.getUsers();
   }
 
+  @Get(':id')
+  async getUserById(@Param('id') id: string) {
+    const user = await this.userService.getUserById(parseInt(id));
+    return user;
+  }
+
+  @Get(':id/posts')
+  async getUserWithPosts(@Param('id') id: number) {
+    return this.userService.getUserWithPosts(id);
+  }
+
   @Post()
   createUser(@Body() createUserDto: CreateUserDto) {
     return this.userService.createUser(createUserDto);
@@ -35,10 +47,9 @@ export class UsersController {
   ) {
     this.userService.updateUser(id, updateUserDto);
   }
-
-  @Delete(':id')
-  async deleteUserById(@Param('id', ParseIntPipe) id: number) {
-    this.userService.deleteUser(id);
+  @Get(':id/profiles')
+  getUserProfile(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.getUserProfile(id);
   }
 
   @Post(':id/profiles')
@@ -57,8 +68,17 @@ export class UsersController {
     return this.userService.createUserPost(id, createUserPostDto);
   }
 
-  // @Delete('posts/:id')
-  // deleteUserPost(@Param('id', ParseIntPipe) id: number) {
-  //   return this.userService.deletePost(id);
-  // }
+  @Get(':id/posts/:id')
+  async getSingleUserPost(
+    @Param('userId', ParseIntPipe) userId: number,
+    @Param('postId', ParseIntPipe) postId: number,
+  ) {
+    const post = await this.userService.getSingleUserPost(userId, postId);
+    return post;
+  }
+
+  @Delete(':id')
+  async deleteUserWithPosts(@Param('id', ParseIntPipe) id: number) {
+    return this.userService.deleteUserWithPosts(id);
+  }
 }

@@ -1,4 +1,9 @@
-import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
+import {
+  HttpException,
+  HttpStatus,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Post } from 'src/entities/Post';
 import { Profile } from 'src/entities/Profile';
@@ -18,31 +23,61 @@ export class UsersService {
   ) {}
 
   getUsers() {
-    return this.userRepo.find({ relations: ['profile', 'posts'] });
+    return this.userRepo.find({ relations: ['posts', 'profile'] });
+  }
+
+  async getUserById(id: number) {
+    const user = await this.userRepo.findOne({
+      where: { id },
+      relations: ['profile', 'posts'],
+    });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    return user;
   }
 
   createUser(userDetails: CreateUserDto) {
     const newUser = this.userRepo.create({
       ...userDetails,
+
       createdAt: new Date(),
     });
     this.userRepo.save(newUser);
     return 'User Created Successfully';
   }
 
-  updateUser(id: number, updateUserDetails: UpdateUserDto) {
-    this.userRepo.update({ id }, { ...updateUserDetails });
+  async updateUser(id: number, updateUserDto: UpdateUserDto) {
+    const result = await this.userRepo.update({ id }, { ...updateUserDto });
+    if (result.affected === 0) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
   }
 
-  deleteUser(id: number) {
-    this.userRepo.delete(id);
-    return 'User Deleted Succesfully';
-  }
+  async deleteUserWithPosts(id: number) {
+    // Check if user exists
+    const user = await this.userRepo.findOne({
+      where: { id },
+      relations: ['posts'],
+    });
+    if (!user) {
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
 
-  // deletePost(id: number) {
-  //   this.userRepo.delete(id);
-  //   return 'Post deleted';
-  // }
+    // Delete all user's posts
+
+    if (user.posts.length > 0) {
+      const postIds = user.posts.map((post) => post.id);
+      await this.postRepo.delete(postIds);
+    }
+
+    // Delete user
+    await this.userRepo.delete(id);
+    return `User with id ${id} and their ${user.posts.length} posts deleted successfully`;
+  }
+  async getUserProfile(id: number) {
+    return this.userRepo.findOneBy({ id });
+  }
 
   async createUserProfile(
     id: number,
@@ -73,5 +108,42 @@ export class UsersService {
       user,
     });
     return this.postRepo.save(newPost);
+  }
+
+  async getSingleUserPost(userId: number, postId: number) {
+    const user = await this.userRepo.findOne({
+      where: { id: userId },
+      relations: ['posts'],
+    });
+    if (!user) {
+      throw new NotFoundException(`User with id ${userId} not found`);
+    }
+    const post = user.posts.find((p) => p.id === userId);
+    if (!post) {
+      throw new NotFoundException(
+        `Post with id ${postId} not found for user ${userId}`,
+      );
+    }
+
+    return post;
+  }
+  async getUserWithPosts(id: number) {
+    const user = await this.userRepo.findOne({
+      where: { id },
+      relations: ['posts'],
+    });
+    if (!user) {
+      // User not found
+      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
+    }
+    return user;
+  }
+
+  async deletePost(id: number) {
+    const result = await this.userRepo.delete(id);
+    if (result.affected === 0) {
+      throw new HttpException('Post not found', HttpStatus.NOT_FOUND);
+    }
+    return 'Post deleted succesfully';
   }
 }

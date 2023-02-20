@@ -5,13 +5,13 @@ export class Profile {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ default: null })
   firstName: string;
 
-  @Column()
+  @Column({ default: null })
   lastName: string;
 
-  @Column()
+  @Column({ default: null })
   age: number;
 
   @Column()
