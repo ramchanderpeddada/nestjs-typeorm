@@ -3,7 +3,6 @@ import {
   Controller,
   Delete,
   Get,
-  HttpException,
   Param,
   ParseIntPipe,
   Post,
@@ -11,7 +10,6 @@ import {
 } from '@nestjs/common';
 import { CreateUserDto } from './dtos/CreateUser.dto';
 import { CreateUserPostDto } from './dtos/CreateUserPost.dto';
-import { CreateUserProfileDto } from './dtos/CreateUserProfile.dto';
 import { UpdateUserDto } from './dtos/UpdateUser.dto';
 import { UsersService } from './users.service';
 
@@ -35,6 +33,15 @@ export class UsersController {
     return this.userService.getUserWithPosts(id);
   }
 
+  // @Get(':id/posts/:id')
+  // async getSingleUserPost(
+  //   @Param('userId', ParseIntPipe) userId: number,
+  //   @Param('postId', ParseIntPipe) postId: number,
+  // ) {
+  //   const post = await this.userService.getSingleUserPost(userId, postId);
+  //   return post;
+  // }
+
   @Post()
   createUser(@Body() createUserDto: CreateUserDto) {
     return this.userService.createUser(createUserDto);
@@ -45,19 +52,8 @@ export class UsersController {
     @Param('id', ParseIntPipe) id: number,
     @Body() updateUserDto: UpdateUserDto,
   ) {
-    this.userService.updateUser(id, updateUserDto);
-  }
-  @Get(':id/profiles')
-  getUserProfile(@Param('id', ParseIntPipe) id: number) {
-    return this.userService.getUserProfile(id);
-  }
-
-  @Post(':id/profiles')
-  createUserProfile(
-    @Param('id', ParseIntPipe) id: number,
-    @Body() createUserProfileDto: CreateUserProfileDto,
-  ) {
-    return this.userService.createUserProfile(id, createUserProfileDto);
+    console.log(updateUserDto);
+    return await this.userService.updateUser(id, updateUserDto);
   }
 
   @Post(':id/posts')
@@ -68,17 +64,17 @@ export class UsersController {
     return this.userService.createUserPost(id, createUserPostDto);
   }
 
-  @Get(':id/posts/:id')
-  async getSingleUserPost(
-    @Param('userId', ParseIntPipe) userId: number,
-    @Param('postId', ParseIntPipe) postId: number,
-  ) {
-    const post = await this.userService.getSingleUserPost(userId, postId);
-    return post;
-  }
-
   @Delete(':id')
   async deleteUserWithPosts(@Param('id', ParseIntPipe) id: number) {
     return this.userService.deleteUserWithPosts(id);
   }
+
+  // @Delete(':id/posts')
+  // async deletePost(@Param('id', ParseIntPipe) id: number) {
+  //   this.userService.deletePost(id);
+  // }
+  // @Post('register')
+  // async register(@Body() user: User): Promise<void> {DELETE
+  //   this.userService.createUser(user);
+  // }
 }
