@@ -28,30 +28,38 @@ export class UsersService {
     return user;
   }
 
-  createUser(userDetails: CreateUserDto) {
-    const newUser = this.userRepo.create({
-      ...userDetails,
-      createdAt: new Date(),
-    });
-    this.userRepo.save(newUser);
-    return 'User Created Successfully';
-  }
-  // async updateUser(id: number, updateUserDto: UpdateUserDto) {
-  //   const result = await this.userRepo.update({ id }, { ...updateUserDto });
-  //   // const result = await this.userRepo.update(id, updateUserDto);
-  //   if (result.affected === 0) {
-  //     throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-  //   }
-  // }
-  async updateUser(id: number, updateUserDto: UpdateUserDto) {
+  async getUserWithPosts(id: number) {
     const user = await this.userRepo.findOne({
       where: { id },
       relations: ['posts'],
     });
-    if (!user) {
-      throw new HttpException('User not found', HttpStatus.NOT_FOUND);
-    }
+    return user;
+  }
 
+  createUser(createUserDetails: CreateUserDto) {
+    const newUser = this.userRepo.create({
+      ...createUserDetails,
+      createdAt: new Date(),
+    });
+    this.userRepo.save(newUser);
+    return newUser;
+  }
+
+  async createUserPost(id: number, createUserPostDetails: CreateUserPostDto) {
+    const user = await this.userRepo.findOneBy({ id });
+    if (!user)
+      throw new HttpException(
+        "User Not found. Can't Create profile",
+        HttpStatus.BAD_REQUEST,
+      );
+    const newPost = this.postRepo.create({
+      ...createUserPostDetails,
+      user,
+    });
+    return this.postRepo.save(newPost);
+  }
+
+  async updateUser(id: number, updateUserDto: UpdateUserDto) {
     return this.userRepo.update(id, updateUserDto);
   }
 
@@ -70,29 +78,6 @@ export class UsersService {
       await this.postRepo.delete(postIds);
     }
     // Delete user
-    await this.userRepo.delete(id);
-    return `User with id ${id} and their ${user.posts.length} posts deleted successfully`;
-  }
-
-  async createUserPost(id: number, createUserPostDetails: CreateUserPostDto) {
-    const user = await this.userRepo.findOneBy({ id });
-    if (!user)
-      throw new HttpException(
-        "User Not found. Can't Create profile",
-        HttpStatus.BAD_REQUEST,
-      );
-    const newPost = this.postRepo.create({
-      ...createUserPostDetails,
-      user,
-    });
-    return this.postRepo.save(newPost);
-  }
-
-  async getUserWithPosts(id: number) {
-    const user = await this.userRepo.findOne({
-      where: { id },
-      relations: ['posts'],
-    });
-    return user;
+    return await this.userRepo.delete(id);
   }
 }
